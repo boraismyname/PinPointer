@@ -11,11 +11,14 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import android.location.*;
 
 public class MapsActivity extends FragmentActivity {
     static final LatLng HAMBURG = new LatLng(53.558, 9.927);
     static final LatLng KIEL = new LatLng(53.551, 9.993);
     private GoogleMap mMap; // Might be null if Google Play services APK is not available.
+    LocationManager locationManager = Context.getSystemService(Context.LOCATION_SERVICE);
+    LocationListener listenerCoarse, listnerFine;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -84,4 +87,5 @@ public class MapsActivity extends FragmentActivity {
     private void setUpMap() {
         mMap.addMarker(new MarkerOptions().position(new LatLng(0, 0)).title("Marker"));
     }
+
 }
