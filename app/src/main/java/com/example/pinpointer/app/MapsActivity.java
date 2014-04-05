@@ -12,19 +12,63 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import android.location.*;
+import android.content.Context;
+import android.view.View;
+import android.widget.*;
 
 public class MapsActivity extends FragmentActivity {
     static final LatLng HAMBURG = new LatLng(53.558, 9.927);
     static final LatLng KIEL = new LatLng(53.551, 9.993);
     private GoogleMap mMap; // Might be null if Google Play services APK is not available.
-    LocationManager locationManager = Context.getSystemService(Context.LOCATION_SERVICE);
-    LocationListener listenerCoarse, listnerFine;
+
+    private MyLocationListener mLocationListener;
+    private LocationManager mLocationManager;
+    private Location currentLocation;
+    int i = 0;
+    Button refresh;
+    Marker marker;
+
+    public class MyLocationListener implements LocationListener {
+
+        //private final String TAG = MyLocationListener.class.getSimpleName();
+
+        @Override
+        public void onLocationChanged(Location location) {
+            //GPS.this.main.locationChanged(loc.getLongitude(), loc.getLatitude());
+            currentLocation = location;
+        }
+
+        @Override
+        public void onProviderDisabled(String provider) {
+            //GPS.this.main.displayGPSSettingsDialog();
+        }
+
+        @Override
+        public void onProviderEnabled(String provider) {
+
+        }
+
+        @Override
+        public void onStatusChanged(String provider, int status, Bundle extras) {
+
+        }
+
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_map);
         setUpMapIfNeeded();
+        refresh = (Button) findViewById(R.id.select);
+        refresh.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                updateSwag();
+            }
+        });
+        mLocationManager = (LocationManager) this.getSystemService(LOCATION_SERVICE);
+        mLocationListener = new MyLocationListener();
 
     }
 
@@ -32,6 +76,7 @@ public class MapsActivity extends FragmentActivity {
     protected void onResume() {
         super.onResume();
         setUpMapIfNeeded();
+        updateSwag();
     }
 
     /**
@@ -71,10 +116,10 @@ public class MapsActivity extends FragmentActivity {
                         .fromResource(R.drawable.ic_launcher)));
 
         // Move the camera instantly to hamburg with a zoom of 15.
-        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(HAMBURG, 15));
+        //mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(HAMBURG, 15));
 
         // Zoom in, animating the camera.
-        mMap.animateCamera(CameraUpdateFactory.zoomTo(10), 2000, null);
+        //mMap.animateCamera(CameraUpdateFactory.zoomTo(10), 2000, null);
 
     }
 
@@ -87,5 +132,27 @@ public class MapsActivity extends FragmentActivity {
     private void setUpMap() {
         mMap.addMarker(new MarkerOptions().position(new LatLng(0, 0)).title("Marker"));
     }
+    private void updateSwag(){
+        String provider = LocationManager.GPS_PROVIDER;
+        //long minTime = 0;
+        //float minDistance = 0;
+        //mLocationManager.requestLocationUpdates(provider, minTime, minDistance,mLocationListener);
+        currentLocation = mLocationManager.getLastKnownLocation(provider);
+        LatLng here = new LatLng(currentLocation.getLatitude(),currentLocation.getLongitude());
+        if(i == 0)
+        {
+            marker = mMap.addMarker(new MarkerOptions()
+                    .position(here)
+                    .title("Blow Me")
+                    .snippet(""));
+            mMap.addMarker(new MarkerOptions().position(new LatLng(currentLocation.getLatitude()+0.02,currentLocation.getLongitude()+0.02)).title("Marker"));
+            mMap.animateCamera(CameraUpdateFactory.zoomTo(5), 2000, null);
+            i++;
+        }
+        marker.setPosition(here);
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(here, 10));
+        // Zoom in, animating the camera.
+        //mMap.animateCamera(CameraUpdateFactory.zoomTo(5), 2000, null);
 
+    }
 }
