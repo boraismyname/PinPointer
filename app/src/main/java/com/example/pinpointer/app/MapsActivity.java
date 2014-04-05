@@ -16,10 +16,16 @@ import android.content.Context;
 import android.view.View;
 import android.widget.*;
 
-public class MapsActivity extends FragmentActivity {
-    static final LatLng HAMBURG = new LatLng(53.558, 9.927);
-    static final LatLng KIEL = new LatLng(53.551, 9.993);
+GooglePlayServicesClient.ConnectionCallbacks,
+        GooglePlayServicesClient.OnConnectionFailedListener
+
+public class MapsActivity extends FragmentActivity implements
+        GooglePlayServicesClient.ConnectionCallbacks,
+        GooglePlayServicesClient.OnConnectionFailedListener{
+    static final LatLng PSU = new LatLng(40.7961, -77.8628);
+    private final static int CONNECTION_FAILURE_RESOLUTION_REQUEST = 9000;
     private GoogleMap mMap; // Might be null if Google Play services APK is not available.
+<<<<<<< HEAD
 
     private MyLocationListener mLocationListener;
     private LocationManager mLocationManager;
@@ -54,10 +60,132 @@ public class MapsActivity extends FragmentActivity {
         }
 
     }
+=======
+    LocationManager locationManager = Context.getSystemService(Context.LOCATION_SERVICE);
+    LocationListener listenerCoarse, listnerFine;
+    public static class ErrorDialogFragment extends DialogFragment {
+        // Global field to contain the error dialog
+        private Dialog mDialog;
+        // Default constructor. Sets the dialog field to null
+        public ErrorDialogFragment() {
+            super();
+            mDialog = null;
+        }
+        // Set the dialog to display
+        public void setDialog(Dialog dialog) {
+            mDialog = dialog;
+        }
+        // Return a Dialog to the DialogFragment.
+        @Override
+        public Dialog onCreateDialog(Bundle savedInstanceState) {
+            return mDialog;
+        }
+    }
+    @Override
+    protected void onActivityResult(
+            int requestCode, int resultCode, Intent data) {
+        // Decide what to do based on the original request code
+        switch (requestCode) {
+            ...
+            case CONNECTION_FAILURE_RESOLUTION_REQUEST :
+            /*
+             * If the result code is Activity.RESULT_OK, try
+             * to connect again
+             */
+                switch (resultCode) {
+                    case Activity.RESULT_OK :
+                    /*
+                     * Try the request again
+                     */
+                        ...
+                        break;
+                }
+        }
+    }
+    private boolean servicesConnected() {
+        // Check that Google Play services is available
+        int resultCode =
+                GooglePlayServicesUtil.
+                        isGooglePlayServicesAvailable(this);
+        // If Google Play services is available
+        if (ConnectionResult.SUCCESS == resultCode) {
+            // In debug mode, log the status
+            Log.d("Location Updates",
+                    "Google Play services is available.");
+            // Continue
+            return true;
+            // Google Play services was not available for some reason
+        } else {
+            // Get the error code
+            int errorCode = connectionResult.getErrorCode();
+            // Get the error dialog from Google Play services
+            Dialog errorDialog = GooglePlayServicesUtil.getErrorDialog(
+                    errorCode,
+                    this,
+                    CONNECTION_FAILURE_RESOLUTION_REQUEST);
+>>>>>>> bc79d1452c086989031e9c6c09599353a73bf9cc
 
+            // If Google Play services can provide an error dialog
+            if (errorDialog != null) {
+                // Create a new DialogFragment for the error dialog
+                ErrorDialogFragment errorFragment =
+                        new ErrorDialogFragment();
+                // Set the dialog in the DialogFragment
+                errorFragment.setDialog(errorDialog);
+                // Show the error dialog in the DialogFragment
+                errorFragment.show(getSupportFragmentManager(),
+                        "Location Updates");
+            }
+        }
+    }
+
+
+    @Override
+    public void onConnected(Bundle dataBundle) {
+        // Display the connection status
+        Toast.makeText(this, "Connected", Toast.LENGTH_SHORT).show();
+
+    }
+    @Override
+    public void onConnectionFailed(ConnectionResult connectionResult) {
+        /*
+         * Google Play services can resolve some errors it detects.
+         * If the error has a resolution, try sending an Intent to
+         * start a Google Play services activity that can resolve
+         * error.
+         */
+        if (connectionResult.hasResolution()) {
+            try {
+                // Start an Activity that tries to resolve the error
+                connectionResult.startResolutionForResult(
+                        this,
+                        CONNECTION_FAILURE_RESOLUTION_REQUEST);
+                /*
+                 * Thrown if Google Play services canceled the original
+                 * PendingIntent
+                 */
+            } catch (IntentSender.SendIntentException e) {
+                // Log the error
+                e.printStackTrace();
+            }
+        } else {
+            /*
+             * If no resolution is available, display a dialog to the
+             * user with the error.
+             */
+            showErrorDialog(connectionResult.getErrorCode());
+        }
+    }
+    @Override
+    public void onDisconnected() {
+        // Display the connection status
+        Toast.makeText(this, "Disconnected. Please re-connect.",
+                Toast.LENGTH_SHORT).show();
+    }
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        mLocationClient = new LocationClient(this, this, this);
         setContentView(R.layout.activity_map);
         setUpMapIfNeeded();
         refresh = (Button) findViewById(R.id.select);
@@ -71,14 +199,25 @@ public class MapsActivity extends FragmentActivity {
         mLocationListener = new MyLocationListener();
 
     }
-
     @Override
     protected void onResume() {
         super.onResume();
         setUpMapIfNeeded();
         updateSwag();
     }
-
+    @Override
+    protected void onStart() {
+        super.onStart();
+        // Connect the client.
+        mLocationClient.connect();
+        setUpMapIfNeeded();
+    }
+    @Override
+    protected void onStop() {
+        // Disconnecting the client invalidates it.
+        mLocationClient.disconnect();
+        super.onStop();
+    }
     /**
      * Sets up the map if it is possible to do so (i.e., the Google Play services APK is correctly
      * installed) and the map has not already been instantiated.. This will ensure that we only ever
@@ -106,20 +245,15 @@ public class MapsActivity extends FragmentActivity {
             }
         }
         mMap.setMyLocationEnabled(true);
-        Marker hamburg = mMap.addMarker(new MarkerOptions().position(HAMBURG)
-                .title("Hamburg"));
-        Marker kiel = mMap.addMarker(new MarkerOptions()
-                .position(KIEL)
-                .title("Kiel")
-                .snippet("Kiel is cool")
-                .icon(BitmapDescriptorFactory
-                        .fromResource(R.drawable.ic_launcher)));
 
+<<<<<<< HEAD
         // Move the camera instantly to hamburg with a zoom of 15.
         //mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(HAMBURG, 15));
 
         // Zoom in, animating the camera.
         //mMap.animateCamera(CameraUpdateFactory.zoomTo(10), 2000, null);
+=======
+>>>>>>> bc79d1452c086989031e9c6c09599353a73bf9cc
 
     }
 
@@ -130,7 +264,20 @@ public class MapsActivity extends FragmentActivity {
      * This should only be called once and when we are sure that {@link #mMap} is not null.
      */
     private void setUpMap() {
-        mMap.addMarker(new MarkerOptions().position(new LatLng(0, 0)).title("Marker"));
+        Marker hamburg = mMap.addMarker(new MarkerOptions().position(mLocationClient.getLastLocation())
+                .title("Me"));
+        Marker kiel = mMap.addMarker(new MarkerOptions()
+                .position(PSU)
+                .title("Friend")
+                .snippet("Hold to get directions!")
+                .icon(BitmapDescriptorFactory
+                        .fromResource(R.drawable.ic_launcher)));
+
+        // Move the camera instantly to hamburg with a zoom of 15.
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(mLocationClient.getLastLocation(), 15));
+
+        // Zoom in, animating the camera.
+        mMap.animateCamera(CameraUpdateFactory.zoomTo(5), 2000, null);
     }
     private void updateSwag(){
         String provider = LocationManager.GPS_PROVIDER;
